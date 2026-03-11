@@ -16,7 +16,7 @@ async function openBrowser(url) {
     await open(url);
 }
 
-function createApp(portNum) {
+function createApp(portNum, options = {}) {
     const app = express();
     const PORT = portNum || 3333;
 
@@ -153,28 +153,40 @@ function createApp(portNum) {
     });
 
     const server = app.listen(PORT, () => {
-        const url = `http://localhost:${PORT}`;
-        console.log(chalk.green(`\n🚀 Lore UI Dashboard running at ${chalk.bold(url)}\n`));
-        console.log(chalk.cyan(`  Press Ctrl+C to stop the server.`));
+        if (!options.quiet) {
+            const url = `http://localhost:${PORT}`;
+            console.log(chalk.green(`\n🚀 Lore UI Dashboard running at ${chalk.bold(url)}\n`));
+            console.log(chalk.cyan(`  Press Ctrl+C to stop the server.`));
 
-        // Use native exec to open browser to avoid ESM import issues with 'open'
-        const { exec } = require('child_process');
-        const startPath = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-        exec(`${startPath} ${url}`, (err) => {
-            if (err) {
-                console.log(chalk.dim(`  (Could not open browser automatically. Please visit ${url} manually)`));
+            // Use native exec to open browser to avoid ESM import issues with 'open'
+            if (options.openBrowser !== false) {
+                const { exec } = require('child_process');
+                const startPath = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+                exec(`${startPath} ${url}`, (err) => {
+                    if (err) {
+                        console.log(chalk.dim(`  (Could not open browser automatically. Please visit ${url} manually)`));
+                    }
+                });
             }
-        });
+        }
     });
 
     server.on('error', (e) => {
         if (e.code === 'EADDRINUSE') {
-            console.error(chalk.red(`\nPort ${PORT} is already in use by another process.`));
-            console.error(chalk.yellow(`Use 'lore ui --port <number>' to specify a different port.\n`));
-            process.exit(1);
+            if (!options.quiet) {
+                console.error(chalk.red(`\nPort ${PORT} is already in use by another process.`));
+                console.error(chalk.yellow(`Use 'lore ui --port <number>' to specify a different port.\n`));
+                process.exit(1);
+            } else {
+                process.stderr.write(chalk.yellow(`\n⚠ Lore UI dashboard port ${PORT} is in use; dashboard disabled for this instance.\n`));
+            }
         } else {
-            console.error(chalk.red(`\nFailed to start server: ${e.message}\n`));
-            process.exit(1);
+            if (!options.quiet) {
+                console.error(chalk.red(`\nFailed to start server: ${e.message}\n`));
+                process.exit(1);
+            } else {
+                process.stderr.write(chalk.red(`\n⚠ Failed to start Lore UI dashboard: ${e.message}\n`));
+            }
         }
     });
 
@@ -186,13 +198,13 @@ function createApp(portNum) {
  * @param {number} port
  * @returns {object} Express server instance
  */
-function startDashboard(port) {
-    return createApp(port || 3333);
+function startDashboard(port, options = {}) {
+    return createApp(port || 3333, options);
 }
 
 function ui(options) {
     requireInit();
-    createApp(options.port || 3333);
+    createApp(options.port || 3333, { quiet: false, openBrowser: true });
 }
 
 module.exports = ui;

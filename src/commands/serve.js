@@ -28,7 +28,9 @@ async function serve(options) {
     const uiPort = options.port || 3333;
     try {
       const { startDashboard } = require('./ui');
-      startDashboard(uiPort);
+      // Pass quiet: true to prevent stdout corruption of the MCP protocol stream
+      // and prevent the UI from calling process.exit() if the port is in use.
+      startDashboard(uiPort, { quiet: true, openBrowser: false });
     } catch (e) {
       process.stderr.write(chalk.yellow(`⚠ Could not start UI dashboard: ${e.message}\n`));
     }
