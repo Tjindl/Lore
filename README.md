@@ -143,6 +143,13 @@ Add the MCP server to your Claude Code config (`~/.claude/settings.json`):
 }
 ```
 
+### 🛡️ Autonomous AI Integration (Zero-Prompt)
+To make Claude autonomously respect your codebase rules without you ever having to ask it, drop a `CLAUDE.md` (or `.cursorrules` / `.clinerules`) file in the root of your project with this exact instruction:
+
+> **"Before you modify, create, or explain any file in this codebase, you must ALWAYS execute the `lore_why` tool on that file path first to check if there are any architectural invariants, gotchas, or decisions you need to respect."**
+
+Once added, the AI will autonomously query Lore in the background before it writes a single line of code, ensuring it never violates your team's architectural constraints.
+
 ---
 
 ## 🔒 Privacy & Data

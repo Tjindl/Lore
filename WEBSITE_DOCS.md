@@ -35,6 +35,13 @@ The killer feature for AI web users. Run `lore prompt "Refactoring Auth"` and Lo
 Complete native integration with AI editors (like Cursor) and CLI agents (like Claude Code) via the **Model Context Protocol (MCP)**. 
 Lore exposes secure "Tools" directly to the AI. If Claude decides it needs to edit `src/auth.js`, it autonomously queries Lore via MCP and silently injects your project's rules into its own working memory before writing a single line of code.
 
+#### 🛡️ Autonomous Zero-Prompt Enforcement
+To make Claude autonomously respect your codebase rules without you ever having to ask it, drop a `CLAUDE.md` (or `.cursorrules` / `.clinerules`) file in the root of your project with this exact instruction:
+
+> **"Before you modify, create, or explain any file in this codebase, you must ALWAYS execute the `lore_why` tool on that file path first to check if there are any architectural invariants, gotchas, or decisions you need to respect."**
+
+Once added, the AI will autonomously query Lore in the background before it writes a single line of code, ensuring it never violates your team's architectural constraints.
+
 ### 3. Automated Passive Mining (`lore watch`)
 You don't have to stop coding to document. Run `lore watch --daemon` and Lore passively scans your source code in the background. It looks for specific comment patterns (like `// WARNING:`, `// HACK:`, or `// IMPORTANT:`) and automatically extracts them into pending "Drafts" for you to review later.
 
