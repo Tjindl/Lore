@@ -10,15 +10,17 @@ const {
 const why = require('./tools/why');
 const search = require('./tools/search');
 const log = require('./tools/log');
+const update = require('./tools/update');
 const stale = require('./tools/stale');
 const overview = require('./tools/overview');
 const drafts = require('./tools/drafts');
+const { announceStartup } = require('./status');
 
-const TOOLS = [why, search, log, stale, overview, drafts];
+const TOOLS = [why, search, log, update, stale, overview, drafts];
 
 async function startServer() {
   const server = new Server(
-    { name: 'lore', version: '0.3.0' },
+    { name: 'lore', version: '0.4.0' },
     { capabilities: { tools: {} } }
   );
 
@@ -45,8 +47,12 @@ async function startServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
+  announceStartup(TOOLS);
+
   // Keep process alive
   process.stdin.resume();
 }
 
 module.exports = { startServer };
+
+
