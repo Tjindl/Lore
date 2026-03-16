@@ -38,13 +38,18 @@ function score() {
     console.log();
 
     // Coverage
-    const cColor = result.coverage >= 70 ? chalk.green : result.coverage >= 40 ? chalk.yellow : chalk.red;
-    console.log(cColor(`Coverage     ${result.coverage}/100`));
-    console.log(chalk.dim(`  ${bar(result.coverage)}  ${result.coveredModules}/${result.activeModules} active modules documented`));
-    if (result.topUnlogged.length > 0) {
-      console.log(chalk.yellow('  Highest risk unlogged modules:'));
-      for (const { module: mod, commits } of result.topUnlogged) {
-        console.log(chalk.yellow(`    ${mod}  — ${commits} commits`));
+    if (result.activeModules === 0) {
+      console.log(chalk.dim(`Coverage     N/A`));
+      console.log(chalk.dim(`  No active modules in recent git history`));
+    } else {
+      const cColor = result.coverage >= 70 ? chalk.green : result.coverage >= 40 ? chalk.yellow : chalk.red;
+      console.log(cColor(`Coverage     ${result.coverage}/100`));
+      console.log(chalk.dim(`  ${bar(result.coverage)}  ${result.coveredModules}/${result.activeModules} active modules documented`));
+      if (result.topUnlogged.length > 0) {
+        console.log(chalk.yellow('  Highest risk unlogged modules:'));
+        for (const { module: mod, commits } of result.topUnlogged) {
+          console.log(chalk.yellow(`    ${mod}  — ${commits} commits`));
+        }
       }
     }
     console.log();

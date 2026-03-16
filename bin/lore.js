@@ -130,6 +130,7 @@ program
   .option('--tradeoffs <tradeoffs>', 'Tradeoffs')
   .option('--tags <tags>', 'Comma-separated tags')
   .option('--files <files>', 'Comma-separated file paths')
+  .option('--file <file>', 'Alias for --files')
   .action(require('../src/commands/log'));
 
 program

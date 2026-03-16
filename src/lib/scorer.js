@@ -53,7 +53,7 @@ function getModulesWithEntries(index) {
 }
 
 function calcCoverage(activeModules, modulesWithEntries) {
-  if (activeModules.length === 0) return 100;
+  if (activeModules.length === 0) return 50; // neutral — no data, displayed as N/A
   const covered = activeModules.filter(m => modulesWithEntries.has(m)).length;
   return Math.round((covered / activeModules.length) * 100);
 }

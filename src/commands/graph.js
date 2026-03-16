@@ -39,18 +39,24 @@ function graph(filepath, options) {
     const index = readIndex();
     const normalized = path.relative(projectRoot, path.resolve(filepath)).replace(/\\/g, '/');
 
-    const imports = g.imports[normalized] || [];
+    const importsArr = g.imports[normalized];
     const importedBy = g.importedBy[normalized] || [];
 
-    if (imports.length === 0 && importedBy.length === 0) {
-      console.log(chalk.yellow(`No graph data for ${filepath}`));
-      console.log(chalk.dim('  Run: lore graph --build  to build the dependency graph'));
+    if (importsArr === undefined) {
+      console.log(chalk.yellow(`${filepath} is not in the dependency graph.`));
+      console.log(chalk.dim('  Run: lore graph --build  to index project files'));
       return;
     }
 
+    const imports = importsArr;
     const entryCount = (file) => (index.files[file] || []).length;
 
     console.log(chalk.cyan(`\n📖 ${filepath}\n`));
+
+    if (imports.length === 0 && importedBy.length === 0) {
+      console.log(chalk.dim('  No internal project imports or dependents found.'));
+      return;
+    }
 
     if (imports.length > 0) {
       console.log(chalk.bold('Imports:'));

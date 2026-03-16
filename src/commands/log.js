@@ -14,6 +14,13 @@ async function log(options) {
 
     let type, title, context, alternatives, tradeoffs, tags, files;
 
+    // If --title or --context is given without the other, error rather than falling through to interactive
+    if ((options.title && !options.context) || (!options.title && options.context)) {
+      const missing = !options.title ? '--title' : '--context';
+      console.error(chalk.red(`${missing} is required when using non-interactive mode`));
+      process.exit(1);
+    }
+
     // Inline mode: all three required fields provided as flags
     if (options.type && options.title && options.context) {
       type = options.type;
@@ -22,7 +29,8 @@ async function log(options) {
       alternatives = options.alternatives ? [options.alternatives] : [];
       tradeoffs = options.tradeoffs || '';
       tags = options.tags ? options.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
-      files = options.files ? options.files.split(',').map(f => f.trim()).filter(Boolean) : [];
+      const rawFiles = options.files || options.file || '';
+      files = rawFiles ? rawFiles.split(',').map(f => f.trim()).filter(Boolean) : [];
     } else {
       // Interactive mode
       const recentFiles = getRecentFiles();

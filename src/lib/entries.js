@@ -36,7 +36,8 @@ function generateId(type, title) {
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 3)
-    .join('-');
+    .join('-')
+    .slice(0, 40);
   const ts = Math.floor(Date.now() / 1000);
   return `${type}-${words}-${ts}`;
 }
