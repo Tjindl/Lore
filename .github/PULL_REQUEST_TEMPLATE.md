@@ -8,6 +8,6 @@
 
 ## Checklist
 
-- [ ] `npm test` passes
+- [ ] `npm test` and `npm run lint` pass
 - [ ] Docs updated if behavior or commands changed (`README.md`, `docs/COMMANDS.md`)
-- [ ] `CHANGELOG.md` updated under `[Unreleased]`
+- [ ] A changeset was added (`npx changeset`) if this changes published behavior

@@ -1,3 +1,4 @@
+// @ts-check
 'use strict';
 
 const fs = require('fs-extra');
@@ -5,30 +6,51 @@ const path = require('path');
 const chalk = require('chalk');
 const { LORE_DIR, getTypeDir } = require('./index');
 
+/** @typedef {import('./types').LoreEntry} LoreEntry */
+/** @typedef {import('./types').LoreEntryType} LoreEntryType */
+/** @typedef {import('./types').LoreIndex} LoreIndex */
+
+/**
+ * @param {LoreEntryType} type
+ * @param {string} id
+ */
 function getEntryPath(type, id) {
   return path.join(LORE_DIR, getTypeDir(type), `${id}.json`);
 }
 
+/**
+ * @param {string} entryPath
+ * @returns {LoreEntry | null}
+ */
 function readEntry(entryPath) {
   try {
     return fs.readJsonSync(entryPath);
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     console.error(chalk.red(`Failed to read entry at ${entryPath}: ${e.message}`));
     return null;
   }
 }
 
+/**
+ * @param {LoreEntry} entry
+ * @returns {string | undefined}
+ */
 function writeEntry(entry) {
   const entryPath = getEntryPath(entry.type, entry.id);
   try {
     fs.writeJsonSync(entryPath, entry, { spaces: 2 });
     return entryPath;
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     console.error(chalk.red(`Failed to write entry: ${e.message}`));
     process.exit(1);
   }
 }
 
+/**
+ * @param {LoreEntryType} type
+ * @param {string} title
+ * @returns {string}
+ */
 function generateId(type, title) {
   const words = title
     .toLowerCase()
@@ -42,6 +64,10 @@ function generateId(type, title) {
   return `${type}-${words}-${ts}`;
 }
 
+/**
+ * @param {LoreIndex} index
+ * @returns {LoreEntry[]}
+ */
 function readAllEntries(index) {
   const entries = [];
   for (const entryPath of Object.values(index.entries)) {
@@ -53,8 +79,8 @@ function readAllEntries(index) {
 
 /**
  * Check if a similar entry or draft already exists.
- * @param {object} index - The lore index
- * @param {string} type - Entry type
+ * @param {LoreIndex} index - The lore index
+ * @param {LoreEntryType} type - Entry type
  * @param {string} title - Entry title
  * @returns {{ match: 'exact'|'fuzzy', entry: object, source: 'entry'|'draft' }|null}
  */
@@ -62,6 +88,10 @@ function findDuplicate(index, type, title) {
   const normalizedTitle = title.toLowerCase().trim();
   const titleWords = new Set(normalizedTitle.split(/\s+/).filter((w) => w.length > 2));
 
+  /**
+   * @param {string} [candidateTitle]
+   * @returns {'exact' | 'fuzzy' | null}
+   */
   function checkTitle(candidateTitle) {
     const candidate = (candidateTitle || '').toLowerCase().trim();
 
@@ -70,7 +100,9 @@ function findDuplicate(index, type, title) {
 
     // Fuzzy match: ≥60% word overlap
     if (titleWords.size > 0) {
-      const candidateWords = new Set(candidate.split(/\s+/).filter((w) => w.length > 2));
+      const candidateWords = new Set(
+        candidate.split(/\s+/).filter((/** @type {string} */ w) => w.length > 2)
+      );
       if (candidateWords.size === 0) return null;
 
       let overlap = 0;
@@ -97,6 +129,7 @@ function findDuplicate(index, type, title) {
   // Check pending drafts
   try {
     const { listDrafts } = require('./drafts');
+    /** @type {any[]} */
     const drafts = listDrafts();
     for (const draft of drafts) {
       if (draft.suggestedType !== type) continue;

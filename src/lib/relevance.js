@@ -1,7 +1,11 @@
+// @ts-check
 'use strict';
 
 const path = require('path');
 const { getEmbedding, cosineSimilarity } = require('./embeddings');
+
+/** @typedef {import('./types').LoreEntry} LoreEntry */
+/** @typedef {import('./types').RelevanceContext} RelevanceContext */
 
 // Weights for relevance scoring
 const WEIGHTS = {
@@ -13,8 +17,8 @@ const WEIGHTS = {
 
 /**
  * Score an entry against a query context.
- * @param {object} entry - The lore entry
- * @param {object} context - { filepath, queryText, queryEmbedding, tags }
+ * @param {LoreEntry} entry - The lore entry
+ * @param {RelevanceContext} context
  * @returns {number} score 0–1+
  */
 function scoreEntry(entry, context) {
@@ -68,9 +72,9 @@ function scoreEntry(entry, context) {
 
 /**
  * Rank entries by relevance to a context.
- * @param {object[]} entries
- * @param {object} context
- * @returns {object[]} sorted entries with .score attached
+ * @param {LoreEntry[]} entries
+ * @param {RelevanceContext} context
+ * @returns {(LoreEntry & { _score: number })[]} sorted entries with ._score attached
  */
 function rankEntries(entries, context) {
   return entries

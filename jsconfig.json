@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*.js", "bin/**/*.js"],
+  "exclude": ["node_modules", "src/ui/public", "tests"]
+}

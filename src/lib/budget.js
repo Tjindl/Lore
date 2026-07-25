@@ -1,13 +1,20 @@
+// @ts-check
 'use strict';
 
-// Rough token estimate: 4 chars per token
+/** @typedef {import('./types').LoreEntry} LoreEntry */
+
+/**
+ * Rough token estimate: 4 chars per token.
+ * @param {string} [text]
+ * @returns {number}
+ */
 function estimateTokens(text) {
   return Math.ceil((text || '').length / 4);
 }
 
 /**
  * Format a single entry for MCP context injection.
- * @param {object} entry
+ * @param {LoreEntry} entry
  * @returns {string}
  */
 function formatEntry(entry) {
@@ -35,7 +42,7 @@ function formatEntry(entry) {
 
 /**
  * Select the highest-scoring entries that fit within a token budget.
- * @param {object[]} rankedEntries - Entries sorted by score descending (from rankEntries)
+ * @param {LoreEntry[]} rankedEntries - Entries sorted by score descending (from rankEntries)
  * @param {number} budget - Max tokens
  * @returns {string} Formatted context block
  */

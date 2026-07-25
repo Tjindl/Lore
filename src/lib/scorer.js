@@ -1,3 +1,4 @@
+// @ts-check
 'use strict';
 
 const { execSync } = require('child_process');
@@ -8,14 +9,15 @@ const { readEntry } = require('./entries');
 const { checkStaleness } = require('./stale');
 const { readConfig } = require('./config');
 
+/** @typedef {import('./types').LoreIndex} LoreIndex */
+/** @typedef {import('./types').ScoreResult} ScoreResult */
+/** @typedef {import('./types').ScoreHistoryEntry} ScoreHistoryEntry */
+
 const SCORE_PATH = () => path.join(LORE_DIR, 'score.json');
 
 /**
- * Get directories that have >5 commits in the last 90 days.
- * @returns {string[]} relative dir paths
- */
-/**
  * Parse git log once and return both active modules and per-directory commit counts.
+ * Active modules are directories with >5 commits in the last 90 days.
  * @returns {{ activeModules: string[], commitCounts: Object<string, number> }}
  */
 function getActiveModulesAndCounts() {
@@ -24,6 +26,7 @@ function getActiveModulesAndCounts() {
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
     });
+    /** @type {Object<string, number>} */
     const dirCounts = {};
     for (const line of output.split('\n')) {
       const trimmed = line.trim();
@@ -36,7 +39,7 @@ function getActiveModulesAndCounts() {
       .filter(([, count]) => count > 5)
       .map(([dir]) => dir);
     return { activeModules, commitCounts: dirCounts };
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     return { activeModules: [], commitCounts: {} };
   }
 }
@@ -48,6 +51,8 @@ function getActiveModules() {
 
 /**
  * Get all directories that have at least one Lore entry linked.
+ * @param {LoreIndex} index
+ * @returns {Set<string>}
  */
 function getModulesWithEntries(index) {
   const dirs = new Set();
@@ -62,12 +67,21 @@ function getModulesWithEntries(index) {
   return dirs;
 }
 
+/**
+ * @param {string[]} activeModules
+ * @param {Set<string>} modulesWithEntries
+ * @returns {number}
+ */
 function calcCoverage(activeModules, modulesWithEntries) {
   if (activeModules.length === 0) return 50; // neutral — no data, displayed as N/A
   const covered = activeModules.filter((m) => modulesWithEntries.has(m)).length;
   return Math.round((covered / activeModules.length) * 100);
 }
 
+/**
+ * @param {LoreIndex} index
+ * @returns {number}
+ */
 function calcFreshness(index) {
   let deduction = 0;
   const now = new Date();
@@ -83,7 +97,7 @@ function calcFreshness(index) {
 
     // Age-based staleness for entries with no linked files (older than 60 days)
     if ((!entry.files || entry.files.length === 0) && entry.date) {
-      const ageDays = (now - new Date(entry.date)) / (1000 * 60 * 60 * 24);
+      const ageDays = (now.getTime() - new Date(entry.date).getTime()) / (1000 * 60 * 60 * 24);
       if (ageDays > 60) {
         deduction += Math.min(10, (ageDays - 60) / 6);
       }
@@ -92,7 +106,12 @@ function calcFreshness(index) {
   return Math.max(0, Math.round(100 - deduction));
 }
 
+/**
+ * @param {LoreIndex} index
+ * @returns {number}
+ */
 function calcDepth(index) {
+  /** @type {Object<string, number>} */
   const counts = { decision: 0, invariant: 0, graveyard: 0, gotcha: 0 };
   for (const entryPath of Object.values(index.entries)) {
     const entry = readEntry(entryPath);
@@ -108,7 +127,7 @@ function calcDepth(index) {
 
 /**
  * Compute the full Lore Score result.
- * @returns {object}
+ * @returns {ScoreResult}
  */
 function computeScore() {
   const index = readIndex();
@@ -145,16 +164,17 @@ function computeScore() {
 
 /**
  * Append today's score to history, save to .lore/score.json.
- * @param {object} result
- * @returns {object[]} full history
+ * @param {ScoreResult} result
+ * @returns {ScoreHistoryEntry[]} full history
  */
 function saveScore(result) {
   const scorePath = SCORE_PATH();
+  /** @type {{ history: ScoreHistoryEntry[] }} */
   let data = { history: [] };
   if (fs.existsSync(scorePath)) {
     try {
       data = fs.readJsonSync(scorePath);
-    } catch (e) {}
+    } catch (/** @type {any} */ e) {}
   }
   const today = new Date().toISOString().split('T')[0];
   data.history = (data.history || []).filter((h) => h.date !== today);
@@ -173,7 +193,7 @@ function saveScore(result) {
 
 /**
  * Load score history.
- * @returns {object[]}
+ * @returns {ScoreHistoryEntry[]}
  */
 function loadHistory() {
   const scorePath = SCORE_PATH();

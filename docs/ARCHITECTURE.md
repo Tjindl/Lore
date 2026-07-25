@@ -70,6 +70,21 @@ the corresponding logic in `src/lib/`.
 A dependency-free vanilla JS + CSS frontend. `app.js` fetches from the local API and renders stats,
 search, and the draft-review flow.
 
+## Type safety
+
+Lore is plain CommonJS with no build step — there's no plan to convert to TypeScript. Instead,
+the core data-layer files (`src/lib/index.js`, `entries.js`, `relevance.js`, `budget.js`,
+`graph.js`, `scorer.js`) opt into type-checking incrementally via a `// @ts-check` pragma at the
+top of the file plus JSDoc annotations. Shared shapes (`LoreEntry`, `LoreIndex`, `LoreGraph`,
+`ScoreResult`, ...) live in [`src/lib/types.js`](../src/lib/types.js) as `@typedef`s and are
+imported with `@typedef {import('./types').LoreEntry} LoreEntry`.
+
+`jsconfig.json` sets `checkJs: false` at the project level, so only files carrying the pragma are
+checked — everything else is unaffected. Run `npm run typecheck` to check them (also wired into
+CI). When touching one of these files, or adding a new one to the opted-in set, keep it clean
+rather than suppressing errors — the whole point is that a broken PR to `relevance.js` or
+`budget.js` fails loudly instead of silently.
+
 ## Data flow: `lore why src/auth.js`
 
 ```mermaid

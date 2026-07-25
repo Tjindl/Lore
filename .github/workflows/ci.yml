@@ -33,5 +33,8 @@ jobs:
       - name: Run linter
         run: npm run lint
 
+      - name: Type-check (@ts-check opted-in files)
+        run: npm run typecheck
+
       - name: Verify CLI entry point
         run: node bin/lore.js --version
