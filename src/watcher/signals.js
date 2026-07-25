@@ -25,14 +25,16 @@ function makeDraft(overrides) {
 async function onFileDeletion(filepath, projectRoot) {
   const relativePath = path.relative(projectRoot, filepath).replace(/\\/g, '/');
 
-  // Try to check line count via git
+  // Try to check line count via git (use execFileSync to avoid shell injection)
   let lines = 0;
   try {
-    const out = execSync(`git show HEAD:"${relativePath}" 2>/dev/null | wc -l`, {
-      encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+    const { execFileSync } = require('child_process');
+    const out = execFileSync('git', ['show', `HEAD:${relativePath}`], {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
-    lines = parseInt(out.trim(), 10) || 0;
-  } catch (e) { }
+    lines = out.split('\n').length;
+  } catch (e) {}
 
   if (lines > 0 && lines < 100) return null;
 
@@ -67,7 +69,8 @@ async function onNewFile(filepath, projectRoot) {
   const name = path.basename(relativePath);
   const lower = name.toLowerCase();
 
-  const configRe = /^(\.env|config\.|settings\.|\.eslintrc|\.prettierrc|\.babelrc|jest\.config|webpack\.config|vite\.config|tsconfig)/;
+  const configRe =
+    /^(\.env|config\.|settings\.|\.eslintrc|\.prettierrc|\.babelrc|jest\.config|webpack\.config|vite\.config|tsconfig)/;
   if (configRe.test(lower)) {
     const draft = makeDraft({
       suggestedType: 'decision',
@@ -80,7 +83,8 @@ async function onNewFile(filepath, projectRoot) {
     return draft;
   }
 
-  const adapterRe = /(adapter|provider|connector|driver|handler|strategy|middleware)\.(js|ts|jsx|tsx)$/;
+  const adapterRe =
+    /(adapter|provider|connector|driver|handler|strategy|middleware)\.(js|ts|jsx|tsx)$/;
   if (adapterRe.test(lower)) {
     const base = name.replace(/\.(js|ts|jsx|tsx)$/, '');
     const draft = makeDraft({
@@ -104,13 +108,19 @@ async function onPackageJsonChange(filepath, projectRoot) {
   let prev = {};
   let curr = {};
   try {
-    const prevRaw = execSync(`git show HEAD:"${relativePath}"`, {
-      encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+    const { execFileSync } = require('child_process');
+    const prevRaw = execFileSync('git', ['show', `HEAD:${relativePath}`], {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
     prev = JSON.parse(prevRaw);
-  } catch (e) { }
+  } catch (e) {}
 
-  try { curr = await fs.readJson(filepath); } catch (e) { return []; }
+  try {
+    curr = await fs.readJson(filepath);
+  } catch (e) {
+    return [];
+  }
 
   const prevDeps = Object.assign({}, prev.dependencies || {}, prev.devDependencies || {});
   const currDeps = Object.assign({}, curr.dependencies || {}, curr.devDependencies || {});
@@ -118,24 +128,28 @@ async function onPackageJsonChange(filepath, projectRoot) {
   const drafts = [];
   for (const pkg of Object.keys(currDeps)) {
     if (!prevDeps[pkg]) {
-      drafts.push(makeDraft({
-        suggestedType: 'decision',
-        suggestedTitle: `Added ${pkg} dependency`,
-        evidence: `New package added to package.json: ${pkg}@${currDeps[pkg]}`,
-        files: [relativePath],
-        confidence: 0.6,
-      }));
+      drafts.push(
+        makeDraft({
+          suggestedType: 'decision',
+          suggestedTitle: `Added ${pkg} dependency`,
+          evidence: `New package added to package.json: ${pkg}@${currDeps[pkg]}`,
+          files: [relativePath],
+          confidence: 0.6,
+        })
+      );
     }
   }
   for (const pkg of Object.keys(prevDeps)) {
     if (!currDeps[pkg]) {
-      drafts.push(makeDraft({
-        suggestedType: 'graveyard',
-        suggestedTitle: `Removed ${pkg} dependency`,
-        evidence: `Package removed from package.json: ${pkg}`,
-        files: [relativePath],
-        confidence: 0.6,
-      }));
+      drafts.push(
+        makeDraft({
+          suggestedType: 'graveyard',
+          suggestedTitle: `Removed ${pkg} dependency`,
+          evidence: `Package removed from package.json: ${pkg}`,
+          files: [relativePath],
+          confidence: 0.6,
+        })
+      );
     }
   }
 
@@ -176,7 +190,9 @@ async function trackFileEdit(filepath, projectRoot) {
   const statePath = path.join(LORE_DIR, 'watch-state.json');
 
   let state = { edits: {} };
-  try { state = await fs.readJson(statePath); } catch (e) { }
+  try {
+    state = await fs.readJson(statePath);
+  } catch (e) {}
   if (!state.edits) state.edits = {};
 
   const now = Date.now();
@@ -184,9 +200,11 @@ async function trackFileEdit(filepath, projectRoot) {
 
   if (!state.edits[relativePath]) state.edits[relativePath] = [];
   state.edits[relativePath].push(now);
-  state.edits[relativePath] = state.edits[relativePath].filter(t => t > weekAgo);
+  state.edits[relativePath] = state.edits[relativePath].filter((t) => t > weekAgo);
 
-  try { await fs.writeJson(statePath, state, { spaces: 2 }); } catch (e) { }
+  try {
+    await fs.writeJson(statePath, state, { spaces: 2 });
+  } catch (e) {}
 
   if (state.edits[relativePath].length >= 5) {
     const name = path.basename(relativePath);
@@ -201,7 +219,9 @@ async function trackFileEdit(filepath, projectRoot) {
     saveDraft(draft);
     // Reset to avoid spam
     state.edits[relativePath] = [];
-    try { await fs.writeJson(statePath, state, { spaces: 2 }); } catch (e) { }
+    try {
+      await fs.writeJson(statePath, state, { spaces: 2 });
+    } catch (e) {}
     return draft;
   }
   return null;

@@ -20,19 +20,19 @@ const TOOLS = [why, search, log, update, stale, overview, drafts];
 
 async function startServer() {
   const server = new Server(
-    { name: 'lore', version: '0.4.0' },
+    { name: 'lore', version: require('../../package.json').version },
     { capabilities: { tools: {} } }
   );
 
   // List tools handler
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: TOOLS.map(t => t.toolDefinition),
+    tools: TOOLS.map((t) => t.toolDefinition),
   }));
 
   // Call tool handler
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
-    const tool = TOOLS.find(t => t.toolDefinition.name === name);
+    const tool = TOOLS.find((t) => t.toolDefinition.name === name);
 
     if (!tool) {
       return {
@@ -54,5 +54,3 @@ async function startServer() {
 }
 
 module.exports = { startServer };
-
-

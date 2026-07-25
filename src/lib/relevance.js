@@ -57,8 +57,8 @@ function scoreEntry(entry, context) {
 
   // Tag overlap
   if (context.tags && entry.tags && context.tags.length > 0 && entry.tags.length > 0) {
-    const queryTagSet = new Set(context.tags.map(t => t.toLowerCase()));
-    const matches = entry.tags.filter(t => queryTagSet.has(t.toLowerCase())).length;
+    const queryTagSet = new Set(context.tags.map((t) => t.toLowerCase()));
+    const matches = entry.tags.filter((t) => queryTagSet.has(t.toLowerCase())).length;
     const overlap = matches / Math.max(queryTagSet.size, entry.tags.length);
     score += overlap * WEIGHTS.tagOverlap;
   }
@@ -74,7 +74,7 @@ function scoreEntry(entry, context) {
  */
 function rankEntries(entries, context) {
   return entries
-    .map(entry => ({ entry, score: scoreEntry(entry, context) }))
+    .map((entry) => ({ entry, score: scoreEntry(entry, context) }))
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score)
     .map(({ entry, score }) => Object.assign({}, entry, { _score: score }));

@@ -20,7 +20,7 @@ function extractComments(code, filePath) {
         plugins: ['typescript', 'jsx', 'decorators-legacy'],
         errorRecovery: true,
       });
-      return (ast.comments || []).map(c => c.value.trim()).filter(Boolean);
+      return (ast.comments || []).map((c) => c.value.trim()).filter(Boolean);
     } catch (e) {
       // fall through
     }
@@ -29,10 +29,10 @@ function extractComments(code, filePath) {
   // Regex: covers JS, Python, Go, Rust, shell
   const comments = [];
   const patterns = [
-    /\/\/([^\n]+)/g,        // //
-    /\/\*([\s\S]*?)\*\//g,  // /* */
-    /#([^\n]+)/g,           // #
-    /--([^\n]+)/g,          // --
+    /\/\/([^\n]+)/g, // //
+    /\/\*([\s\S]*?)\*\//g, // /* */
+    /#([^\n]+)/g, // #
+    /--([^\n]+)/g, // --
   ];
   for (const re of patterns) {
     let m;
@@ -53,7 +53,11 @@ function extractComments(code, filePath) {
  */
 async function mineFile(absFilePath, projectRoot) {
   let code = '';
-  try { code = await fs.readFile(absFilePath, 'utf8'); } catch (e) { return []; }
+  try {
+    code = await fs.readFile(absFilePath, 'utf8');
+  } catch (e) {
+    return [];
+  }
 
   const relativePath = path.relative(projectRoot, absFilePath).replace(/\\/g, '/');
   const comments = extractComments(code, absFilePath);
@@ -61,7 +65,9 @@ async function mineFile(absFilePath, projectRoot) {
 
   const existingDrafts = listDrafts();
   const index = readIndex();
-  const existingEntries = Object.values(index.entries).map(p => readEntry(p)).filter(Boolean);
+  const existingEntries = Object.values(index.entries)
+    .map((p) => readEntry(p))
+    .filter(Boolean);
 
   // Deduplicate: skip if we have a recent draft or entry from same file with same title
   for (const comment of comments) {
@@ -72,8 +78,12 @@ async function mineFile(absFilePath, projectRoot) {
     const title = extractTitle(comment);
     if (!title || title.length < 3) continue;
 
-    const isDuplicateDraft = existingDrafts.some(d => d.suggestedTitle === title && (d.files || []).includes(relativePath));
-    const isDuplicateEntry = existingEntries.some(e => e.title === title && (e.files || []).includes(relativePath));
+    const isDuplicateDraft = existingDrafts.some(
+      (d) => d.suggestedTitle === title && (d.files || []).includes(relativePath)
+    );
+    const isDuplicateEntry = existingEntries.some(
+      (e) => e.title === title && (e.files || []).includes(relativePath)
+    );
 
     if (isDuplicateDraft || isDuplicateEntry) continue;
 
@@ -106,7 +116,7 @@ async function mineFile(absFilePath, projectRoot) {
 async function mineDirectory(absDirPath, projectRoot, ignore) {
   const { globSync } = require('glob');
   const ignoreList = ignore || ['node_modules', 'dist', '.git', '.lore', 'coverage'];
-  const ignorePats = ignoreList.map(i => `${i}/**`);
+  const ignorePats = ignoreList.map((i) => `${i}/**`);
 
   const files = globSync('**/*.{js,ts,jsx,tsx,py,go,rs}', {
     cwd: absDirPath,

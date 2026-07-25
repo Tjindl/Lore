@@ -5,7 +5,7 @@ const chalk = require('chalk');
 function drawBox(content, colorFn, title) {
   const lines = content.split('\n');
   const maxLen = Math.max(
-    ...lines.map(l => l.replace(/\x1B\[[0-9;]*m/g, '').length),
+    ...lines.map((l) => l.replace(/\x1B\[[0-9;]*m/g, '').length),
     title ? title.length + 4 : 0
   );
 
@@ -32,10 +32,19 @@ function printEntry(entry) {
   let colorFn = chalk.white;
   let titleColor = chalk.bold.white;
 
-  if (entry.type === 'decision') { colorFn = chalk.cyan; titleColor = chalk.bold.cyan; }
-  else if (entry.type === 'invariant') { colorFn = chalk.red; titleColor = chalk.bold.red; }
-  else if (entry.type === 'gotcha') { colorFn = chalk.yellow; titleColor = chalk.bold.yellow; }
-  else if (entry.type === 'graveyard') { colorFn = chalk.gray; titleColor = chalk.bold.gray; }
+  if (entry.type === 'decision') {
+    colorFn = chalk.cyan;
+    titleColor = chalk.bold.cyan;
+  } else if (entry.type === 'invariant') {
+    colorFn = chalk.red;
+    titleColor = chalk.bold.red;
+  } else if (entry.type === 'gotcha') {
+    colorFn = chalk.yellow;
+    titleColor = chalk.bold.yellow;
+  } else if (entry.type === 'graveyard') {
+    colorFn = chalk.gray;
+    titleColor = chalk.bold.gray;
+  }
 
   const typeLabel = `[${entry.type.toUpperCase()}]`;
   content += `${titleColor(typeLabel)} ${titleColor(entry.title)} ${chalk.gray('(' + entry.date + ')')}\n\n`;
@@ -76,10 +85,10 @@ function formatPromptContext(query, entries) {
     return `# Project Context: Lore\nThe user is asking about: "${query}"\n\nNo specific historical rules or decisions were found in the project memory for this topic.`;
   }
 
-  const invariants = entries.filter(e => e.type === 'invariant');
-  const gotchas = entries.filter(e => e.type === 'gotcha');
-  const decisions = entries.filter(e => e.type === 'decision');
-  const graveyard = entries.filter(e => e.type === 'graveyard');
+  const invariants = entries.filter((e) => e.type === 'invariant');
+  const gotchas = entries.filter((e) => e.type === 'gotcha');
+  const decisions = entries.filter((e) => e.type === 'decision');
+  const graveyard = entries.filter((e) => e.type === 'graveyard');
 
   let output = `# Project Context: Lore\nThe user is asking: "${query}"\n\nPlease adhere strictly to the following project architectural rules extracted from project memory:\n`;
 

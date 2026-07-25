@@ -7,7 +7,8 @@ const { readConfig } = require('../../lib/config');
 
 const toolDefinition = {
   name: 'lore_search',
-  description: 'Search Lore entries by keyword or semantic meaning. Returns matching architectural decisions, invariants, gotchas, and graveyard entries.',
+  description:
+    'Search Lore entries by keyword or semantic meaning. Returns matching architectural decisions, invariants, gotchas, and graveyard entries.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -28,7 +29,7 @@ const toolDefinition = {
 async function handler(args) {
   const { query, type: filterType } = args;
   const config = readConfig();
-  const budget = (config.mcp && config.mcp.tokenBudget) ? config.mcp.tokenBudget : 4000;
+  const budget = config.mcp && config.mcp.tokenBudget ? config.mcp.tokenBudget : 4000;
 
   try {
     const index = readIndex();
@@ -46,17 +47,30 @@ async function handler(args) {
         ...(entry.alternatives || []),
         entry.tradeoffs || '',
         ...(entry.tags || []),
-      ].join(' ').toLowerCase();
+      ]
+        .join(' ')
+        .toLowerCase();
 
       if (searchable.includes(q)) {
-        // Calculate a basic relevance score for text search:
-        // 1. Term frequency of query
-        const tf = (searchable.match(new RegExp(q, 'g')) || []).length;
-        // 2. Bonus for newer entries
-        const ageDays = (Date.now() - new Date(entry.date || 0)) / (1000 * 60 * 60 * 24);
-        const recencyBonus = Math.max(0, 5 - (ageDays / 30)); // up to +5 points for newest
+        // --- Relevance scoring ---
+        // 1. Type priority: invariants and gotchas are critical, decisions are important, graveyard is lowest
+        const typePriority = { invariant: 10, gotcha: 8, decision: 5, graveyard: 2 };
+        const typeScore = typePriority[entry.type] || 3;
 
-        matches.push(Object.assign({}, entry, { _score: tf + recencyBonus }));
+        // 2. Title match bonus: matches in title are much more relevant than body matches
+        const titleMatch = (entry.title || '').toLowerCase().includes(q) ? 6 : 0;
+
+        // 3. Term frequency of query in searchable text
+        const tf = (
+          searchable.match(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []
+        ).length;
+
+        // 4. Recency bonus: newer entries get up to +5 points
+        const ageDays = (Date.now() - new Date(entry.date || 0)) / (1000 * 60 * 60 * 24);
+        const recencyBonus = Math.max(0, 5 - ageDays / 30);
+
+        const totalScore = typeScore + titleMatch + tf + recencyBonus;
+        matches.push(Object.assign({}, entry, { _score: totalScore }));
       }
     }
 
@@ -92,7 +106,12 @@ async function handler(args) {
     const budgeted = enforceBudget(matches, budget);
 
     return {
-      content: [{ type: 'text', text: budgeted || `Matches found, but they exceed the ${budget} token budget.` }],
+      content: [
+        {
+          type: 'text',
+          text: budgeted || `Matches found, but they exceed the ${budget} token budget.`,
+        },
+      ],
     };
   } catch (e) {
     return {

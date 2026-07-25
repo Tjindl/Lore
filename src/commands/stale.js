@@ -22,7 +22,8 @@ function stale() {
         console.log(chalk.yellow(`\n⚠ ${entry.id}`));
         console.log(`  Title: ${entry.title}`);
         for (const s of staleFiles) {
-          const daysText = s.daysAgo === 0 ? 'today' : `${s.daysAgo} day${s.daysAgo === 1 ? '' : 's'} ago`;
+          const daysText =
+            s.daysAgo === 0 ? 'today' : `${s.daysAgo} day${s.daysAgo === 1 ? '' : 's'} ago`;
           console.log(chalk.yellow(`  File changed: ${s.filepath} (${daysText})`));
         }
         console.log(chalk.cyan(`  Suggest: lore edit ${entry.id}`));

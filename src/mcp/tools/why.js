@@ -9,7 +9,8 @@ const { readConfig } = require('../../lib/config');
 
 const toolDefinition = {
   name: 'lore_why',
-  description: 'Retrieve architectural decisions and context for a specific file or directory. Returns all relevant Lore entries, including graph-propagated context from imported and importing modules.',
+  description:
+    'Retrieve architectural decisions and context for a specific file or directory. Returns all relevant Lore entries, including graph-propagated context from imported and importing modules.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -25,7 +26,7 @@ const toolDefinition = {
 async function handler(args) {
   const { filepath } = args;
   const config = readConfig();
-  const budget = (config.mcp && config.mcp.tokenBudget) ? config.mcp.tokenBudget : 4000;
+  const budget = config.mcp && config.mcp.tokenBudget ? config.mcp.tokenBudget : 4000;
 
   try {
     const index = readIndex();
@@ -35,7 +36,7 @@ async function handler(args) {
     // Collect entry IDs with weights: { id → maxWeight }
     const weights = {};
     function addIds(ids, w) {
-      for (const id of (ids || [])) {
+      for (const id of ids || []) {
         weights[id] = Math.max(weights[id] || 0, w);
       }
     }
@@ -54,12 +55,12 @@ async function handler(args) {
     }
 
     // Graph: files this file imports (0.3)
-    for (const dep of (graph.imports[normalized] || [])) {
+    for (const dep of graph.imports[normalized] || []) {
       addIds(index.files[dep], 0.3);
     }
 
     // Graph: files that import this file (0.2)
-    for (const dep of (graph.importedBy[normalized] || [])) {
+    for (const dep of graph.importedBy[normalized] || []) {
       addIds(index.files[dep], 0.2);
     }
 

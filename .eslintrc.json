@@ -1,0 +1,24 @@
+{
+  "env": {
+    "node": true,
+    "browser": true,
+    "es2021": true,
+    "jest": true
+  },
+  "extends": ["eslint:recommended", "plugin:prettier/recommended"],
+  "parserOptions": {
+    "ecmaVersion": "latest"
+  },
+  "globals": {
+    "vis": "readonly"
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-empty": "warn",
+    "no-prototype-builtins": "warn",
+    "no-inner-declarations": "off",
+    "no-control-regex": "off",
+    "no-useless-escape": "off",
+    "no-constant-condition": "warn"
+  }
+}

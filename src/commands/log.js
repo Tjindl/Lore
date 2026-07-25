@@ -21,16 +21,26 @@ async function log(options) {
       process.exit(1);
     }
 
-    // Inline mode: all three required fields provided as flags
-    if (options.type && options.title && options.context) {
-      type = options.type;
+    // Inline mode: both required fields provided as flags
+    if (options.title && options.context) {
+      type = options.type || 'decision';
       title = options.title;
       context = options.context;
       alternatives = options.alternatives ? [options.alternatives] : [];
       tradeoffs = options.tradeoffs || '';
-      tags = options.tags ? options.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+      tags = options.tags
+        ? options.tags
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [];
       const rawFiles = options.files || options.file || '';
-      files = rawFiles ? rawFiles.split(',').map(f => f.trim()).filter(Boolean) : [];
+      files = rawFiles
+        ? rawFiles
+            .split(',')
+            .map((f) => f.trim())
+            .filter(Boolean)
+        : [];
     } else {
       // Interactive mode
       const recentFiles = getRecentFiles();
@@ -48,14 +58,14 @@ async function log(options) {
           name: 'title',
           message: 'Title:',
           default: options.title || '',
-          validate: v => v.trim().length > 0 || 'Title is required',
+          validate: (v) => v.trim().length > 0 || 'Title is required',
         },
         {
           type: 'input',
           name: 'context',
           message: 'Context (why?):',
           default: options.context || '',
-          validate: v => v.trim().length > 0 || 'Context is required',
+          validate: (v) => v.trim().length > 0 || 'Context is required',
         },
         {
           type: 'input',
@@ -96,11 +106,19 @@ async function log(options) {
       context = answers.context;
       alternatives = answers.alternatives ? [answers.alternatives] : [];
       tradeoffs = answers.tradeoffs || '';
-      tags = answers.tags ? answers.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+      tags = answers.tags
+        ? answers.tags
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [];
       files = answers.files ? [...answers.files] : [];
 
       if (answers.extraFiles) {
-        const extra = answers.extraFiles.split(',').map(f => f.trim()).filter(Boolean);
+        const extra = answers.extraFiles
+          .split(',')
+          .map((f) => f.trim())
+          .filter(Boolean);
         files = [...files, ...extra];
       }
     }
@@ -119,18 +137,24 @@ async function log(options) {
       console.log(chalk.dim(`  Title: "${duplicate.entry.title}"\n`));
 
       // In inline mode (flags), just warn and exit
-      if (options.type && options.title && options.context) {
-        console.log(chalk.yellow('Skipping to avoid duplicate. Use a different title or edit the existing entry.'));
+      if (options.title && options.context) {
+        console.log(
+          chalk.yellow(
+            'Skipping to avoid duplicate. Use a different title or edit the existing entry.'
+          )
+        );
         return;
       }
 
       // In interactive mode, ask user
-      const { proceed } = await inquirer.prompt([{
-        type: 'confirm',
-        name: 'proceed',
-        message: 'Create entry anyway?',
-        default: false,
-      }]);
+      const { proceed } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'proceed',
+          message: 'Create entry anyway?',
+          default: false,
+        },
+      ]);
       if (!proceed) {
         console.log(chalk.dim('Aborted.'));
         return;
@@ -162,7 +186,9 @@ async function log(options) {
       const config = readConfig();
       if (config.embed && config.embed.autoEmbed) {
         const { generateEmbedding, storeEmbedding } = require('../lib/embeddings');
-        const text = [title, context, ...alternatives.filter(Boolean), tradeoffs, ...tags].join(' ');
+        const text = [title, context, ...alternatives.filter(Boolean), tradeoffs, ...tags].join(
+          ' '
+        );
         const vector = await generateEmbedding(text);
         storeEmbedding(id, vector);
         console.log(chalk.dim('  (embedding stored)'));

@@ -7,7 +7,8 @@ const { saveDraft } = require('../../lib/drafts');
 
 const toolDefinition = {
   name: 'lore_log',
-  description: 'Create a new Lore entry to record an architectural decision, invariant, gotcha, or graveyard item. Use this when you make a significant technical decision that future developers (or AI) should know about. Note: entries may be saved as drafts pending human review depending on project configuration.',
+  description:
+    'Create a new Lore entry to record an architectural decision, invariant, gotcha, or graveyard item. Use this when you make a significant technical decision that future developers (or AI) should know about. Note: entries may be saved as drafts pending human review depending on project configuration.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -59,7 +60,12 @@ async function handler(args) {
     if (duplicate) {
       const matchLabel = duplicate.match === 'exact' ? 'Exact duplicate' : 'Similar entry';
       return {
-        content: [{ type: 'text', text: `${matchLabel} already exists: "${duplicate.entry.title}" (${duplicate.entry.id}). No new entry created.` }],
+        content: [
+          {
+            type: 'text',
+            text: `${matchLabel} already exists: "${duplicate.entry.title}" (${duplicate.entry.id}). No new entry created.`,
+          },
+        ],
       };
     }
 
@@ -81,7 +87,12 @@ async function handler(args) {
       });
 
       return {
-        content: [{ type: 'text', text: `Draft created for human review: "${title}" (${draftId}). The developer can approve it with: lore drafts` }],
+        content: [
+          {
+            type: 'text',
+            text: `Draft created for human review: "${title}" (${draftId}). The developer can approve it with: lore drafts`,
+          },
+        ],
       };
     }
 
@@ -125,4 +136,3 @@ async function handler(args) {
 }
 
 module.exports = { toolDefinition, handler };
-

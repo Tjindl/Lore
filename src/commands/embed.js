@@ -48,11 +48,15 @@ async function embed() {
     console.log('');
     console.log(chalk.green(`✓ Embedded ${success}/${ids.length} entries`));
     if (failed > 0) {
-      console.log(chalk.yellow(`⚠ ${failed} failed (is Ollama running? Run: ollama pull nomic-embed-text)`));
+      console.log(
+        chalk.yellow(`⚠ ${failed} failed (is Ollama running? Run: ollama pull nomic-embed-text)`)
+      );
     }
   } catch (e) {
     if (e.message && e.message.includes('Ollama')) {
-      console.error(chalk.red('Ollama not available. Start Ollama and run: ollama pull nomic-embed-text'));
+      console.error(
+        chalk.red('Ollama not available. Start Ollama and run: ollama pull nomic-embed-text')
+      );
     } else {
       console.error(chalk.red(`Failed to embed: ${e.message}`));
     }

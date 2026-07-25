@@ -64,7 +64,9 @@ async function checkSemanticStaleness(entry, diff) {
     const sim = cosineSimilarity(diffVec, entryVec);
 
     if (sim > 0.6 && (entry.type === 'invariant' || entry.type === 'decision')) {
-      return [`Diff is semantically related to this ${entry.type} (${(sim * 100).toFixed(0)}% similarity)`];
+      return [
+        `Diff is semantically related to this ${entry.type} (${(sim * 100).toFixed(0)}% similarity)`,
+      ];
     }
   } catch (e) {
     // Ollama not available
@@ -85,7 +87,7 @@ async function checkFileStaleness(changedFile, projectRoot, changedCode, diff) {
   const relativePath = path.relative(projectRoot, path.resolve(changedFile)).replace(/\\/g, '/');
 
   const entryIds = new Set();
-  if (index.files[relativePath]) index.files[relativePath].forEach(id => entryIds.add(id));
+  if (index.files[relativePath]) index.files[relativePath].forEach((id) => entryIds.add(id));
 
   const results = [];
   for (const id of entryIds) {

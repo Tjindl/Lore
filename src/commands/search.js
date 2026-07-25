@@ -9,7 +9,7 @@ const { requireInit } = require('../lib/guard');
 function search(queryArgs) {
   requireInit();
   try {
-    const query = Array.isArray(queryArgs) ? queryArgs.join(' ') : (queryArgs || '');
+    const query = Array.isArray(queryArgs) ? queryArgs.join(' ') : queryArgs || '';
 
     if (!query || query.trim().length === 0) {
       console.error(chalk.red('\nError: You must provide a search query.'));
@@ -17,7 +17,12 @@ function search(queryArgs) {
     }
 
     const index = readIndex();
-    const q = query.toLowerCase();
+
+    // Support parsing multiple search terms separated by spaces
+    const queryTerms = query
+      .toLowerCase()
+      .split(' ')
+      .filter((t) => t.trim().length > 0);
     const matches = [];
 
     for (const entryPath of Object.values(index.entries)) {
@@ -30,9 +35,14 @@ function search(queryArgs) {
         ...(entry.alternatives || []),
         entry.tradeoffs || '',
         ...(entry.tags || []),
-      ].join(' ').toLowerCase();
+      ]
+        .join(' ')
+        .toLowerCase();
 
-      if (searchable.includes(q)) {
+      // Check if ALL query terms exist in the searchable string
+      const isMatch = queryTerms.every((term) => searchable.includes(term));
+
+      if (isMatch) {
         matches.push(entry);
       }
     }

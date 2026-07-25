@@ -9,7 +9,8 @@ const { checkPatternStaleness } = require('../../watcher/staleness');
 
 const toolDefinition = {
   name: 'lore_stale',
-  description: 'Check which Lore entries may be outdated. Combines mtime-based staleness (files changed since entry was written) with pattern-based semantic checks (e.g. new HTTP calls in performance paths, architecture shifts).',
+  description:
+    'Check which Lore entries may be outdated. Combines mtime-based staleness (files changed since entry was written) with pattern-based semantic checks (e.g. new HTTP calls in performance paths, architecture shifts).',
   inputSchema: {
     type: 'object',
     properties: {},
@@ -30,7 +31,8 @@ async function handler() {
       // mtime-based staleness (existing)
       const staleFiles = checkStaleness(entry);
       for (const s of staleFiles) {
-        const daysText = s.daysAgo === 0 ? 'today' : `${s.daysAgo} day${s.daysAgo === 1 ? '' : 's'} ago`;
+        const daysText =
+          s.daysAgo === 0 ? 'today' : `${s.daysAgo} day${s.daysAgo === 1 ? '' : 's'} ago`;
 
         // Pattern-based semantic staleness on the changed file
         const reasons = [];
@@ -41,7 +43,9 @@ async function handler() {
             const patternReasons = checkPatternStaleness(entry, s.filepath, code);
             reasons.push(...patternReasons);
           }
-        } catch (e) { /* ignore read errors */ }
+        } catch (e) {
+          /* ignore read errors */
+        }
 
         staleItems.push({
           id: entry.id,

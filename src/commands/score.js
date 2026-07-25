@@ -42,9 +42,14 @@ function score() {
       console.log(chalk.dim(`Coverage     N/A`));
       console.log(chalk.dim(`  No active modules in recent git history`));
     } else {
-      const cColor = result.coverage >= 70 ? chalk.green : result.coverage >= 40 ? chalk.yellow : chalk.red;
+      const cColor =
+        result.coverage >= 70 ? chalk.green : result.coverage >= 40 ? chalk.yellow : chalk.red;
       console.log(cColor(`Coverage     ${result.coverage}/100`));
-      console.log(chalk.dim(`  ${bar(result.coverage)}  ${result.coveredModules}/${result.activeModules} active modules documented`));
+      console.log(
+        chalk.dim(
+          `  ${bar(result.coverage)}  ${result.coveredModules}/${result.activeModules} active modules documented`
+        )
+      );
       if (result.topUnlogged.length > 0) {
         console.log(chalk.yellow('  Highest risk unlogged modules:'));
         for (const { module: mod, commits } of result.topUnlogged) {
@@ -55,7 +60,8 @@ function score() {
     console.log();
 
     // Freshness
-    const fColor = result.freshness >= 70 ? chalk.green : result.freshness >= 40 ? chalk.yellow : chalk.red;
+    const fColor =
+      result.freshness >= 70 ? chalk.green : result.freshness >= 40 ? chalk.yellow : chalk.red;
     console.log(fColor(`Freshness    ${result.freshness}/100`));
     console.log(chalk.dim(`  ${bar(result.freshness)}`));
     console.log();
@@ -70,13 +76,20 @@ function score() {
 
     // History
     if (history.length > 1) {
-      const recent = history.slice(-3).map(h => h.score).join(' → ');
+      const recent = history
+        .slice(-3)
+        .map((h) => h.score)
+        .join(' → ');
       console.log(chalk.dim(`Score history: ${recent}${trend(history)}`));
     }
 
     // Tip
     if (result.topUnlogged.length > 0) {
-      console.log(chalk.cyan(`Tip: Log memory for ${result.topUnlogged[0].module} — highest risk unlogged module`));
+      console.log(
+        chalk.cyan(
+          `Tip: Log memory for ${result.topUnlogged[0].module} — highest risk unlogged module`
+        )
+      );
     } else if (result.freshness < 60) {
       console.log(chalk.cyan('Tip: Review stale entries — run: lore stale'));
     } else if (result.depth < 60) {

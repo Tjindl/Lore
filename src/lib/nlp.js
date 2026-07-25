@@ -4,24 +4,81 @@ const natural = require('natural');
 
 // Type detection patterns
 const TYPE_PATTERNS = [
-  { type: 'invariant', re: /\b(must|always|never|shall|required|mandatory|do not|don't)\b/i, confidence: 0.9 },
-  { type: 'graveyard', re: /\b(tried|abandoned|removed|replaced|deprecated|don'?t use|do not use|we used to)\b/i, confidence: 0.85 },
-  { type: 'gotcha', re: /\b(warning|careful|hack|workaround|footgun|beware|gotcha|pitfall|tricky|careful)\b/i, confidence: 0.8 },
-  { type: 'decision', re: /\b(because|reason|chose|decided|switched|opted|note:|important:|we chose|we use)\b/i, confidence: 0.7 },
+  {
+    type: 'invariant',
+    re: /\b(must|always|never|shall|required|mandatory|do not|don't)\b/i,
+    confidence: 0.9,
+  },
+  {
+    type: 'graveyard',
+    re: /\b(tried|abandoned|removed|replaced|deprecated|don'?t use|do not use|we used to)\b/i,
+    confidence: 0.85,
+  },
+  {
+    type: 'gotcha',
+    re: /\b(warning|careful|hack|workaround|footgun|beware|gotcha|pitfall|tricky|careful)\b/i,
+    confidence: 0.8,
+  },
+  {
+    type: 'decision',
+    re: /\b(because|reason|chose|decided|switched|opted|note:|important:|we chose|we use)\b/i,
+    confidence: 0.7,
+  },
 ];
 
 // Trigger phrases for comment scoring
 const TRIGGER_PHRASES = [
-  "don't", "never", "always", "because", "warning", "hack",
-  "todo: explain", "note:", "important:", "must", "shall",
-  "tried", "abandoned", "careful", "workaround", "footgun",
-  "beware", "replaced", "deprecated", "we tried", "latency",
+  "don't",
+  'never',
+  'always',
+  'because',
+  'warning',
+  'hack',
+  'todo: explain',
+  'note:',
+  'important:',
+  'must',
+  'shall',
+  'tried',
+  'abandoned',
+  'careful',
+  'workaround',
+  'footgun',
+  'beware',
+  'replaced',
+  'deprecated',
+  'we tried',
+  'latency',
 ];
 
 const STOP_WORDS = new Set([
-  'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
-  'being', 'i', 'we', 'it', 'this', 'that', 'to', 'of', 'in',
-  'for', 'on', 'with', 'as', 'at', 'by', 'or', 'and', 'but',
+  'a',
+  'an',
+  'the',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'being',
+  'i',
+  'we',
+  'it',
+  'this',
+  'that',
+  'to',
+  'of',
+  'in',
+  'for',
+  'on',
+  'with',
+  'as',
+  'at',
+  'by',
+  'or',
+  'and',
+  'but',
 ]);
 
 /**
@@ -51,15 +108,13 @@ function extractTitle(text, maxWords = 8) {
 
   const tokenizer = new natural.WordTokenizer();
   const words = tokenizer.tokenize(stripped) || [];
-  const meaningful = words.filter(w => w.length > 2 && !STOP_WORDS.has(w.toLowerCase()));
+  const meaningful = words.filter((w) => w.length > 2 && !STOP_WORDS.has(w.toLowerCase()));
 
   const titleWords = meaningful.slice(0, maxWords);
   if (titleWords.length === 0) return stripped.slice(0, 50);
 
   // Title-case
-  return titleWords
-    .map((w, i) => i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w)
-    .join(' ');
+  return titleWords.map((w, i) => (i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w)).join(' ');
 }
 
 /**
@@ -68,7 +123,10 @@ function extractTitle(text, maxWords = 8) {
  * @returns {string}
  */
 function slugify(text) {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 /**

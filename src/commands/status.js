@@ -39,9 +39,12 @@ function status() {
     }
 
     if (staleItems.length > 0) {
-      console.log(chalk.yellow('\n⚠️  Stale entries (linked files changed since entry was written):'));
+      console.log(
+        chalk.yellow('\n⚠️  Stale entries (linked files changed since entry was written):')
+      );
       for (const item of staleItems) {
-        const daysText = item.daysAgo === 0 ? 'today' : `${item.daysAgo} day${item.daysAgo === 1 ? '' : 's'} ago`;
+        const daysText =
+          item.daysAgo === 0 ? 'today' : `${item.daysAgo} day${item.daysAgo === 1 ? '' : 's'} ago`;
         console.log(chalk.yellow(`  ${item.entry.id}  →  ${item.filepath} changed ${daysText}`));
       }
       console.log(chalk.cyan('  Run: lore stale  for details'));

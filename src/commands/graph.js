@@ -62,7 +62,10 @@ function graph(filepath, options) {
       console.log(chalk.bold('Imports:'));
       for (const dep of imports) {
         const n = entryCount(dep);
-        const badge = n > 0 ? chalk.green(` → ${n} Lore entr${n === 1 ? 'y' : 'ies'}`) : chalk.dim(` → 0 Lore entries`);
+        const badge =
+          n > 0
+            ? chalk.green(` → ${n} Lore entr${n === 1 ? 'y' : 'ies'}`)
+            : chalk.dim(` → 0 Lore entries`);
         console.log(`  ${dep}${badge}`);
       }
       console.log();
@@ -72,7 +75,10 @@ function graph(filepath, options) {
       console.log(chalk.bold('Imported by:'));
       for (const dep of importedBy) {
         const n = entryCount(dep);
-        const badge = n > 0 ? chalk.green(` → ${n} Lore entr${n === 1 ? 'y' : 'ies'}`) : chalk.dim(` → 0 Lore entries`);
+        const badge =
+          n > 0
+            ? chalk.green(` → ${n} Lore entr${n === 1 ? 'y' : 'ies'}`)
+            : chalk.dim(` → 0 Lore entries`);
         console.log(`  ${dep}${badge}`);
       }
       console.log();

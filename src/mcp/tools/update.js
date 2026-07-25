@@ -7,13 +7,15 @@ const { readConfig } = require('../../lib/config');
 
 const toolDefinition = {
   name: 'lore_update',
-  description: 'Update an existing Lore entry. Use this when a previous decision, invariant, gotcha, or graveyard item needs to be revised because the context has changed. Updates may be saved as drafts pending human review depending on project configuration.',
+  description:
+    'Update an existing Lore entry. Use this when a previous decision, invariant, gotcha, or graveyard item needs to be revised because the context has changed. Updates may be saved as drafts pending human review depending on project configuration.',
   inputSchema: {
     type: 'object',
     properties: {
       id: {
         type: 'string',
-        description: 'The ID of the existing entry to update (e.g. "decision-use-postgres-1709876543")',
+        description:
+          'The ID of the existing entry to update (e.g. "decision-use-postgres-1709876543")',
       },
       context: {
         type: 'string',
@@ -56,7 +58,12 @@ async function handler(args) {
 
     if (!entryPath) {
       return {
-        content: [{ type: 'text', text: `Entry not found: "${id}". Use lore_search to find the correct entry ID.` }],
+        content: [
+          {
+            type: 'text',
+            text: `Entry not found: "${id}". Use lore_search to find the correct entry ID.`,
+          },
+        ],
         isError: true,
       };
     }
@@ -74,7 +81,8 @@ async function handler(args) {
 
     // Build a summary of what's changing
     const changes = [];
-    if (title !== undefined && title !== entry.title) changes.push(`title: "${entry.title}" → "${title}"`);
+    if (title !== undefined && title !== entry.title)
+      changes.push(`title: "${entry.title}" → "${title}"`);
     if (context !== undefined && context !== entry.context) changes.push('context updated');
     if (files !== undefined) changes.push(`files: [${files.join(', ')}]`);
     if (tags !== undefined) changes.push(`tags: [${tags.join(', ')}]`);
@@ -103,7 +111,12 @@ async function handler(args) {
       });
 
       return {
-        content: [{ type: 'text', text: `Update drafted for human review (${draftId}). Changes: ${changes.join('; ')}. The developer can approve it with: lore drafts` }],
+        content: [
+          {
+            type: 'text',
+            text: `Update drafted for human review (${draftId}). Changes: ${changes.join('; ')}. The developer can approve it with: lore drafts`,
+          },
+        ],
       };
     }
 
@@ -122,7 +135,13 @@ async function handler(args) {
     // Re-embed
     try {
       const { generateEmbedding, storeEmbedding } = require('../../lib/embeddings');
-      const text = [entry.title, entry.context, ...(entry.alternatives || []), entry.tradeoffs || '', ...(entry.tags || [])].join(' ');
+      const text = [
+        entry.title,
+        entry.context,
+        ...(entry.alternatives || []),
+        entry.tradeoffs || '',
+        ...(entry.tags || []),
+      ].join(' ');
       const vector = await generateEmbedding(text);
       storeEmbedding(id, vector);
     } catch (e) {

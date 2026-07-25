@@ -32,7 +32,7 @@ function listDrafts() {
   const dir = DRAFTS_DIR();
   if (!fs.existsSync(dir)) return [];
 
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.json'));
   const drafts = [];
   for (const file of files) {
     try {
@@ -59,7 +59,9 @@ function acceptDraft(draftId) {
     const index = readIndex();
     const existingPath = index.entries[draft.updatesEntryId];
     if (!existingPath) {
-      throw new Error(`Original entry "${draft.updatesEntryId}" not found. It may have been deleted.`);
+      throw new Error(
+        `Original entry "${draft.updatesEntryId}" not found. It may have been deleted.`
+      );
     }
 
     const { readEntry: readExisting } = require('./entries');
@@ -69,7 +71,8 @@ function acceptDraft(draftId) {
     }
 
     // Apply updates from draft — only override fields that have meaningful values
-    if (draft.suggestedTitle && draft.suggestedTitle !== entry.title) entry.title = draft.suggestedTitle;
+    if (draft.suggestedTitle && draft.suggestedTitle !== entry.title)
+      entry.title = draft.suggestedTitle;
     if (draft.evidence && !draft.evidence.startsWith('[UPDATE to ')) entry.context = draft.evidence;
     else if (draft.evidence) {
       // Strip the "[UPDATE to xxx] " prefix from the context
@@ -77,7 +80,8 @@ function acceptDraft(draftId) {
     }
     if (draft.files && draft.files.length > 0) entry.files = draft.files;
     if (draft.tags && draft.tags.length > 0) entry.tags = draft.tags;
-    if (draft.alternatives && draft.alternatives.length > 0) entry.alternatives = draft.alternatives;
+    if (draft.alternatives && draft.alternatives.length > 0)
+      entry.alternatives = draft.alternatives;
     if (draft.tradeoffs) entry.tradeoffs = draft.tradeoffs;
     entry.lastUpdated = new Date().toISOString();
 
@@ -87,8 +91,16 @@ function acceptDraft(draftId) {
     // Re-embed
     try {
       const { generateEmbedding, storeEmbedding } = require('./embeddings');
-      const text = [entry.title, entry.context, ...(entry.alternatives || []), entry.tradeoffs || '', ...(entry.tags || [])].join(' ');
-      generateEmbedding(text).then(vec => storeEmbedding(entry.id, vec)).catch(() => {});
+      const text = [
+        entry.title,
+        entry.context,
+        ...(entry.alternatives || []),
+        entry.tradeoffs || '',
+        ...(entry.tags || []),
+      ].join(' ');
+      generateEmbedding(text)
+        .then((vec) => storeEmbedding(entry.id, vec))
+        .catch(() => {});
     } catch (e) {}
   } else {
     // Standard draft → new entry
@@ -116,8 +128,16 @@ function acceptDraft(draftId) {
     // Auto-embed if Ollama available
     try {
       const { generateEmbedding, storeEmbedding } = require('./embeddings');
-      const text = [title, entry.context, ...entry.alternatives, entry.tradeoffs, ...entry.tags].join(' ');
-      generateEmbedding(text).then(vec => storeEmbedding(id, vec)).catch(() => {});
+      const text = [
+        title,
+        entry.context,
+        ...entry.alternatives,
+        entry.tradeoffs,
+        ...entry.tags,
+      ].join(' ');
+      generateEmbedding(text)
+        .then((vec) => storeEmbedding(id, vec))
+        .catch(() => {});
     } catch (e) {}
   }
 

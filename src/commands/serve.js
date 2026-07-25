@@ -10,7 +10,11 @@ async function serve(options) {
   // Prevent double-start
   const existing = getServerStatus();
   if (existing) {
-    process.stderr.write(chalk.yellow(`\n⚠ Lore MCP server is already running (PID: ${existing.pid}, started: ${existing.startedAt})\n`));
+    process.stderr.write(
+      chalk.yellow(
+        `\n⚠ Lore MCP server is already running (PID: ${existing.pid}, started: ${existing.startedAt})\n`
+      )
+    );
     process.stderr.write(chalk.dim(`  Tools: ${existing.tools.join(', ')}\n\n`));
     process.exit(1);
   }
@@ -20,7 +24,9 @@ async function serve(options) {
     const { startServer } = require('../mcp/server');
     if (!options.quiet) {
       process.stderr.write(chalk.green('📖 Lore MCP server starting on stdio\n'));
-      process.stderr.write(chalk.cyan('   Add to Claude Code settings: { "command": "lore serve", "args": [] }\n'));
+      process.stderr.write(
+        chalk.cyan('   Add to Claude Code settings: { "command": "lore serve", "args": [] }\n')
+      );
     }
     await startServer();
 
@@ -41,4 +47,3 @@ async function serve(options) {
 }
 
 module.exports = serve;
-

@@ -60,7 +60,7 @@ function readAllEntries(index) {
  */
 function findDuplicate(index, type, title) {
   const normalizedTitle = title.toLowerCase().trim();
-  const titleWords = new Set(normalizedTitle.split(/\s+/).filter(w => w.length > 2));
+  const titleWords = new Set(normalizedTitle.split(/\s+/).filter((w) => w.length > 2));
 
   function checkTitle(candidateTitle) {
     const candidate = (candidateTitle || '').toLowerCase().trim();
@@ -70,7 +70,7 @@ function findDuplicate(index, type, title) {
 
     // Fuzzy match: ≥60% word overlap
     if (titleWords.size > 0) {
-      const candidateWords = new Set(candidate.split(/\s+/).filter(w => w.length > 2));
+      const candidateWords = new Set(candidate.split(/\s+/).filter((w) => w.length > 2));
       if (candidateWords.size === 0) return null;
 
       let overlap = 0;
@@ -102,7 +102,12 @@ function findDuplicate(index, type, title) {
       if (draft.suggestedType !== type) continue;
 
       const match = checkTitle(draft.suggestedTitle);
-      if (match) return { match, entry: { id: draft.draftId, title: draft.suggestedTitle, type: draft.suggestedType }, source: 'draft' };
+      if (match)
+        return {
+          match,
+          entry: { id: draft.draftId, title: draft.suggestedTitle, type: draft.suggestedType },
+          source: 'draft',
+        };
     }
   } catch (e) {
     // drafts module not available — skip

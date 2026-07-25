@@ -10,7 +10,8 @@ const { loadHistory } = require('../../lib/scorer');
 
 const toolDefinition = {
   name: 'lore_overview',
-  description: "Get a high-level summary of this project's Lore knowledge base. Returns key decisions, invariants, gotchas, stale entries, Lore Score, and pending drafts. Call this at the start of a session.",
+  description:
+    "Get a high-level summary of this project's Lore knowledge base. Returns key decisions, invariants, gotchas, stale entries, Lore Score, and pending drafts. Call this at the start of a session.",
   inputSchema: {
     type: 'object',
     properties: {
@@ -45,10 +46,32 @@ async function handler(args) {
       }
     }
 
+    function getTimestamp(entry) {
+      if (entry.date) {
+        const d = new Date(entry.date);
+        if (!isNaN(d.valueOf())) return d.getTime();
+      }
+      // Fallback to extracting from ID (e.g., decision-foo-bar-1710000000)
+      if (entry.id) {
+        const parts = entry.id.split('-');
+        const tsString = parts[parts.length - 1];
+
+        // Ensure that the last part is actually a valid unix timestamp (length >= 10 and all numeric)
+        if (tsString && tsString.length >= 10 && /^\d+$/.test(tsString)) {
+          const ts = parseInt(tsString, 10);
+          if (!isNaN(ts)) return ts * 1000;
+        }
+      }
+      return 0; // Ensures bad dates at least fall to bottom instead of blowing up the sort
+    }
+
     // Sort entries newest-first
     for (const type of Object.keys(byType)) {
-      byType[type].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+      byType[type].sort((a, b) => getTimestamp(b) - getTimestamp(a));
     }
+
+    // Sort stale items newest-first too
+    staleItems.sort((a, b) => getTimestamp(b.entry) - getTimestamp(a.entry));
 
     const lines = [];
     const projectName = config.project || 'this project';
@@ -73,7 +96,9 @@ async function handler(args) {
     // Pending drafts
     const draftCount = getDraftCount();
     if (draftCount > 0) {
-      lines.push(`**${draftCount} unreviewed draft${draftCount === 1 ? '' : 's'} — run \`lore drafts\` to review**`);
+      lines.push(
+        `**${draftCount} unreviewed draft${draftCount === 1 ? '' : 's'} — run \`lore drafts\` to review**`
+      );
       lines.push('');
     }
 

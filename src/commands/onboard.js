@@ -19,7 +19,11 @@ function onboard(options) {
 
     // If --days is set, only show onboarding if away long enough
     if (minDays > 0 && (daysSince === null || daysSince < minDays)) {
-      console.log(chalk.cyan(`📖 Skipping onboarding (last session ${daysSince !== null ? daysSince + ' day(s) ago' : 'recently'})`));
+      console.log(
+        chalk.cyan(
+          `📖 Skipping onboarding (last session ${daysSince !== null ? daysSince + ' day(s) ago' : 'recently'})`
+        )
+      );
       return;
     }
 
@@ -38,11 +42,31 @@ function onboard(options) {
       if (staleFiles.length > 0) staleItems.push({ entry, staleFiles });
     }
 
+    // Sort entries newest-first (same logic as overview.js)
+    function getTimestamp(entry) {
+      if (entry.date) {
+        const d = new Date(entry.date);
+        if (!isNaN(d.valueOf())) return d.getTime();
+      }
+      if (entry.id) {
+        const parts = entry.id.split('-');
+        const ts = parseInt(parts[parts.length - 1], 10);
+        if (!isNaN(ts)) return ts * 1000;
+      }
+      return 0;
+    }
+    for (const type of Object.keys(byType)) {
+      byType[type].sort((a, b) => getTimestamp(b) - getTimestamp(a));
+    }
+    staleItems.sort((a, b) => getTimestamp(b.entry) - getTimestamp(a.entry));
+
     const total = Object.values(byType).reduce((sum, arr) => sum + arr.length, 0);
 
     if (daysSince !== null && daysSince >= 3) {
       console.log(chalk.cyan(`\n📖 Welcome back to ${projectName}!`));
-      console.log(chalk.dim(`   You've been away for ${daysSince} day${daysSince === 1 ? '' : 's'}\n`));
+      console.log(
+        chalk.dim(`   You've been away for ${daysSince} day${daysSince === 1 ? '' : 's'}\n`)
+      );
     } else {
       console.log(chalk.cyan(`\n📖 Lore — ${projectName}\n`));
     }
@@ -96,7 +120,9 @@ function onboard(options) {
       for (const { entry, staleFiles } of staleItems.slice(0, 5)) {
         const days = staleFiles[0].daysAgo;
         const daysText = days === 0 ? 'today' : `${days}d ago`;
-        console.log(chalk.yellow(`  • ${entry.title} — ${staleFiles[0].filepath} changed ${daysText}`));
+        console.log(
+          chalk.yellow(`  • ${entry.title} — ${staleFiles[0].filepath} changed ${daysText}`)
+        );
       }
       console.log(chalk.cyan('  Run: lore stale  for full details'));
       console.log();

@@ -17,10 +17,10 @@ function why(filepath) {
 
     // Exact match (also try with trailing slash for bare directory names)
     if (index.files[normalized]) {
-      index.files[normalized].forEach(id => entryIds.add(id));
+      index.files[normalized].forEach((id) => entryIds.add(id));
     }
     if (!normalized.endsWith('/') && index.files[normalized + '/']) {
-      index.files[normalized + '/'].forEach(id => entryIds.add(id));
+      index.files[normalized + '/'].forEach((id) => entryIds.add(id));
     }
 
     // Walk up parent directories
@@ -28,7 +28,7 @@ function why(filepath) {
     while (dir && dir !== '.') {
       const dirKey = dir + '/';
       if (index.files[dirKey]) {
-        index.files[dirKey].forEach(id => entryIds.add(id));
+        index.files[dirKey].forEach((id) => entryIds.add(id));
       }
       dir = path.dirname(dir);
     }

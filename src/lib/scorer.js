@@ -14,12 +14,16 @@ const SCORE_PATH = () => path.join(LORE_DIR, 'score.json');
  * Get directories that have >5 commits in the last 90 days.
  * @returns {string[]} relative dir paths
  */
-function getActiveModules() {
+/**
+ * Parse git log once and return both active modules and per-directory commit counts.
+ * @returns {{ activeModules: string[], commitCounts: Object<string, number> }}
+ */
+function getActiveModulesAndCounts() {
   try {
-    const output = execSync(
-      'git log --since="90 days ago" --name-only --pretty=format:""',
-      { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-    );
+    const output = execSync('git log --since="90 days ago" --name-only --pretty=format:""', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
     const dirCounts = {};
     for (const line of output.split('\n')) {
       const trimmed = line.trim();
@@ -28,12 +32,18 @@ function getActiveModules() {
       if (dir === '.') continue;
       dirCounts[dir] = (dirCounts[dir] || 0) + 1;
     }
-    return Object.entries(dirCounts)
+    const activeModules = Object.entries(dirCounts)
       .filter(([, count]) => count > 5)
       .map(([dir]) => dir);
+    return { activeModules, commitCounts: dirCounts };
   } catch (e) {
-    return [];
+    return { activeModules: [], commitCounts: {} };
   }
+}
+
+// Backward-compatible wrapper
+function getActiveModules() {
+  return getActiveModulesAndCounts().activeModules;
 }
 
 /**
@@ -44,7 +54,7 @@ function getModulesWithEntries(index) {
   for (const entryPath of Object.values(index.entries)) {
     const entry = readEntry(entryPath);
     if (!entry) continue;
-    for (const file of (entry.files || [])) {
+    for (const file of entry.files || []) {
       const dir = path.dirname(file.replace(/^\.\//, '').replace(/\/$/, ''));
       if (dir && dir !== '.') dirs.add(dir);
     }
@@ -54,7 +64,7 @@ function getModulesWithEntries(index) {
 
 function calcCoverage(activeModules, modulesWithEntries) {
   if (activeModules.length === 0) return 50; // neutral — no data, displayed as N/A
-  const covered = activeModules.filter(m => modulesWithEntries.has(m)).length;
+  const covered = activeModules.filter((m) => modulesWithEntries.has(m)).length;
   return Math.round((covered / activeModules.length) * 100);
 }
 
@@ -91,7 +101,7 @@ function calcDepth(index) {
   }
   // invariants and gotchas worth 1.5x
   const weighted =
-    counts.decision + counts.graveyard + (counts.invariant * 1.5) + (counts.gotcha * 1.5);
+    counts.decision + counts.graveyard + counts.invariant * 1.5 + counts.gotcha * 1.5;
   const maxReasonable = 20;
   return Math.min(100, Math.round((weighted / maxReasonable) * 100));
 }
@@ -105,37 +115,21 @@ function computeScore() {
   const config = readConfig();
   const weights = config.scoringWeights || { coverage: 0.4, freshness: 0.35, depth: 0.25 };
 
-  const activeModules = getActiveModules();
+  // Single git log call provides both active modules and commit counts
+  const { activeModules, commitCounts } = getActiveModulesAndCounts();
   const modulesWithEntries = getModulesWithEntries(index);
 
-  // Commit count per dir for ranking unlogged modules
-  const commitCounts = {};
-  try {
-    const output = execSync(
-      'git log --since="90 days ago" --name-only --pretty=format:""',
-      { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-    );
-    for (const line of output.split('\n')) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('warning:')) continue;
-      const dir = path.dirname(trimmed);
-      if (dir !== '.') commitCounts[dir] = (commitCounts[dir] || 0) + 1;
-    }
-  } catch (e) {}
-
   const topUnlogged = activeModules
-    .filter(m => !modulesWithEntries.has(m))
+    .filter((m) => !modulesWithEntries.has(m))
     .sort((a, b) => (commitCounts[b] || 0) - (commitCounts[a] || 0))
     .slice(0, 3)
-    .map(m => ({ module: m, commits: commitCounts[m] || 0 }));
+    .map((m) => ({ module: m, commits: commitCounts[m] || 0 }));
 
   const coverage = calcCoverage(activeModules, modulesWithEntries);
   const freshness = calcFreshness(index);
   const depth = calcDepth(index);
   const score = Math.round(
-    coverage * weights.coverage +
-    freshness * weights.freshness +
-    depth * weights.depth
+    coverage * weights.coverage + freshness * weights.freshness + depth * weights.depth
   );
 
   return {
@@ -144,7 +138,7 @@ function computeScore() {
     freshness,
     depth,
     activeModules: activeModules.length,
-    coveredModules: activeModules.filter(m => modulesWithEntries.has(m)).length,
+    coveredModules: activeModules.filter((m) => modulesWithEntries.has(m)).length,
     topUnlogged,
   };
 }
@@ -158,10 +152,12 @@ function saveScore(result) {
   const scorePath = SCORE_PATH();
   let data = { history: [] };
   if (fs.existsSync(scorePath)) {
-    try { data = fs.readJsonSync(scorePath); } catch (e) {}
+    try {
+      data = fs.readJsonSync(scorePath);
+    } catch (e) {}
   }
   const today = new Date().toISOString().split('T')[0];
-  data.history = (data.history || []).filter(h => h.date !== today);
+  data.history = (data.history || []).filter((h) => h.date !== today);
   data.history.push({
     date: today,
     score: result.score,
@@ -182,7 +178,11 @@ function saveScore(result) {
 function loadHistory() {
   const scorePath = SCORE_PATH();
   if (!fs.existsSync(scorePath)) return [];
-  try { return fs.readJsonSync(scorePath).history || []; } catch (e) { return []; }
+  try {
+    return fs.readJsonSync(scorePath).history || [];
+  } catch (e) {
+    return [];
+  }
 }
 
 module.exports = { computeScore, saveScore, loadHistory, getActiveModules };

@@ -8,7 +8,7 @@ const GRAPH_PATH = () => path.join(LORE_DIR, 'graph.json');
 
 function emptyGraph() {
   return {
-    imports: {},    // filepath → [filepath]
+    imports: {}, // filepath → [filepath]
     importedBy: {}, // filepath → [filepath]
     lastUpdated: new Date().toISOString(),
   };
@@ -17,7 +17,11 @@ function emptyGraph() {
 function loadGraph() {
   const p = GRAPH_PATH();
   if (!fs.existsSync(p)) return emptyGraph();
-  try { return fs.readJsonSync(p); } catch (e) { return emptyGraph(); }
+  try {
+    return fs.readJsonSync(p);
+  } catch (e) {
+    return emptyGraph();
+  }
 }
 
 function saveGraph(graph) {
@@ -36,11 +40,11 @@ function getGraphContext(filepath, graph, index) {
   const normalized = filepath.replace(/^\.\//, '');
   const result = { imports: [], importedBy: [] };
 
-  for (const dep of (graph.imports[normalized] || [])) {
+  for (const dep of graph.imports[normalized] || []) {
     const entryIds = index.files[dep] || [];
     if (entryIds.length > 0) result.imports.push({ file: dep, entryIds });
   }
-  for (const dep of (graph.importedBy[normalized] || [])) {
+  for (const dep of graph.importedBy[normalized] || []) {
     const entryIds = index.files[dep] || [];
     if (entryIds.length > 0) result.importedBy.push({ file: dep, entryIds });
   }

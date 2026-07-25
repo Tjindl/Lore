@@ -28,7 +28,11 @@ async function mine(targetPath) {
     if (count === 0) {
       console.log(chalk.green('✓ No significant comments found'));
     } else {
-      console.log(chalk.green(`📖 Found ${count} draft entr${count === 1 ? 'y' : 'ies'} — review with: lore drafts`));
+      console.log(
+        chalk.green(
+          `📖 Found ${count} draft entr${count === 1 ? 'y' : 'ies'} — review with: lore drafts`
+        )
+      );
     }
   } catch (e) {
     console.error(chalk.red(`Failed to mine: ${e.message}`));

@@ -12,11 +12,15 @@ const PID_FILE = path.join(LORE_DIR, 'mcp.pid');
 function writePidFile(tools) {
   try {
     fs.ensureDirSync(LORE_DIR);
-    fs.writeJsonSync(PID_FILE, {
-      pid: process.pid,
-      startedAt: new Date().toISOString(),
-      tools: tools.map(t => t.toolDefinition.name),
-    }, { spaces: 2 });
+    fs.writeJsonSync(
+      PID_FILE,
+      {
+        pid: process.pid,
+        startedAt: new Date().toISOString(),
+        tools: tools.map((t) => t.toolDefinition.name),
+      },
+      { spaces: 2 }
+    );
   } catch (e) {
     // Non-fatal
   }
@@ -26,7 +30,9 @@ function writePidFile(tools) {
  * Remove the status file on shutdown.
  */
 function removePidFile() {
-  try { fs.removeSync(PID_FILE); } catch (e) {}
+  try {
+    fs.removeSync(PID_FILE);
+  } catch (e) {}
 }
 
 /**
@@ -36,13 +42,19 @@ function removePidFile() {
 function announceStartup(tools) {
   writePidFile(tools);
 
-  const toolNames = tools.map(t => t.toolDefinition.name).join(', ');
+  const toolNames = tools.map((t) => t.toolDefinition.name).join(', ');
   process.stderr.write(`\n📖 Lore MCP server active (PID: ${process.pid})\n`);
   process.stderr.write(`   ${tools.length} tools available: ${toolNames}\n`);
   process.stderr.write(`   Serving project: ${path.basename(process.cwd())}\n\n`);
 
-  process.on('SIGINT', () => { removePidFile(); process.exit(0); });
-  process.on('SIGTERM', () => { removePidFile(); process.exit(0); });
+  process.on('SIGINT', () => {
+    removePidFile();
+    process.exit(0);
+  });
+  process.on('SIGTERM', () => {
+    removePidFile();
+    process.exit(0);
+  });
   process.on('exit', removePidFile);
 }
 

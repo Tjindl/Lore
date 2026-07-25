@@ -11,7 +11,11 @@ const { mineFile } = require('./comments');
 const { updateGraphForFile } = require('./graph');
 
 function timestamp() {
-  return new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+  return new Date().toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 /**
@@ -23,15 +27,17 @@ function startWatcher(options = {}) {
   const config = readConfig();
   const ignore = config.watchIgnore || ['node_modules', 'dist', '.git', 'coverage'];
   // Build regex: any segment matching ignore list or .lore
-  const ignoreRe = new RegExp(`(${[...ignore, '\\.lore'].map(s => s.replace('.', '\\.')).join('|')})`);
+  const ignoreRe = new RegExp(
+    `(${[...ignore, '\\.lore'].map((s) => s.replace('.', '\\.')).join('|')})`
+  );
 
   let draftCount = 0;
 
   const log = options.logFile
     ? (msg) => {
-      const plain = msg.replace(/\x1B\[[0-9;]*m/g, '');
-      fs.appendFileSync(options.logFile, `${new Date().toISOString()} ${plain}\n`);
-    }
+        const plain = msg.replace(/\x1B\[[0-9;]*m/g, '');
+        fs.appendFileSync(options.logFile, `${new Date().toISOString()} ${plain}\n`);
+      }
     : (msg) => console.log(msg);
 
   if (!options.quiet) {
@@ -45,7 +51,9 @@ function startWatcher(options = {}) {
   function recordDraft(draft, filepath) {
     draftCount++;
     const rel = path.relative(projectRoot, filepath) || filepath;
-    log(`${chalk.dim(`[${timestamp()}]`)} Signal detected in ${chalk.yellow(rel)} — queued for review`);
+    log(
+      `${chalk.dim(`[${timestamp()}]`)} Signal detected in ${chalk.yellow(rel)} — queued for review`
+    );
   }
 
   const watcher = chokidar.watch('.', {
@@ -92,10 +100,14 @@ function startWatcher(options = {}) {
       const commentDrafts = await mineFile(abs, projectRoot);
       if (commentDrafts.length > 0) {
         draftCount += commentDrafts.length;
-        log(`${chalk.dim(`[${timestamp()}]`)} Mined ${commentDrafts.length} comment${commentDrafts.length === 1 ? '' : 's'} from ${chalk.yellow(relPath)} — queued for review`);
+        log(
+          `${chalk.dim(`[${timestamp()}]`)} Mined ${commentDrafts.length} comment${commentDrafts.length === 1 ? '' : 's'} from ${chalk.yellow(relPath)} — queued for review`
+        );
       }
 
-      try { updateGraphForFile(abs, projectRoot); } catch (e) { }
+      try {
+        updateGraphForFile(abs, projectRoot);
+      } catch (e) {}
     }
   });
 
@@ -110,9 +122,11 @@ function startWatcher(options = {}) {
         const drafts = await signals.onCommitMessage(message.trim(), projectRoot);
         for (const d of drafts) {
           draftCount++;
-          log(`${chalk.dim(`[${timestamp()}]`)} Commit signal: "${message.slice(0, 60)}" — queued for review`);
+          log(
+            `${chalk.dim(`[${timestamp()}]`)} Commit signal: "${message.slice(0, 60)}" — queued for review`
+          );
         }
-      } catch (e) { }
+      } catch (e) {}
     });
   }
 
@@ -121,12 +135,23 @@ function startWatcher(options = {}) {
     if (gitWatcher) gitWatcher.close();
     if (!options.quiet) {
       console.log();
-      console.log(chalk.cyan(`📖 Lore captured ${draftCount} draft${draftCount === 1 ? '' : 's'} today. Review with: lore drafts`));
+      console.log(
+        chalk.cyan(
+          `📖 Lore captured ${draftCount} draft${draftCount === 1 ? '' : 's'} today. Review with: lore drafts`
+        )
+      );
     }
   }
 
-  process.on('SIGINT', () => { shutdown(); process.exit(0); });
-  process.on('SIGTERM', () => { watcher.close(); if (gitWatcher) gitWatcher.close(); process.exit(0); });
+  process.on('SIGINT', () => {
+    shutdown();
+    process.exit(0);
+  });
+  process.on('SIGTERM', () => {
+    watcher.close();
+    if (gitWatcher) gitWatcher.close();
+    process.exit(0);
+  });
 
   return watcher;
 }

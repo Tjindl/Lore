@@ -1,0 +1,52 @@
+name: Bug report
+description: Something in Lore isn't working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The exact `lore` commands (and relevant `.lore/` state) that trigger it.
+      placeholder: |
+        1. lore init
+        2. lore log --type decision ...
+        3. lore why src/foo.js
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Lore version
+      description: Output of `lore --version`
+    validations:
+      required: true
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      description: Output of `node -v`
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Paste any terminal output or stack trace. This will be rendered as a code block.
+      render: shell
